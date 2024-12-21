@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GWA Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #121212;
+            color: #FFFFFF;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #444;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #1E88E5;
+            color: white;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #1E88E5;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #1565C0;
+        }
+        select {
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+        }
+    </style>
+</head>
+<body>
+
+<h1>GWA Calculator</h1>
+
+<label for="semester">Select Semester:</label>
+<select id="semester" onchange="updateSubjects()">
+    <option value="1">1st Year - 1st Semester</option>
+    <option value="2">1st Year - 2nd Semester</option>
+    <option value="3">2nd Year - 1st Semester</option>
+    <option value="4">2nd Year - 2nd Semester</option>
+    <option value="5">3rd Year - 1st Semester</option>
+    <option value="6">3rd Year - 2nd Semester</option>
+    <option value="7">4th Year - 1st Semester</option>
+    <option value="8">4th Year - 2nd Semester</option>
+</select>
+
+<table>
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>Units</th>
+            <th>Grade</th>
+        </tr>
+    </thead>
+    <tbody id="subjectTable">
+        <!-- Subjects will be dynamically added here -->
+    </tbody>
+</table>
+
+<button class="btn" onclick="computeGWA()">Compute GWA</button>
+<p id="result"></p>
+
+<script>
+    const subjectsPerSemester = {
+        1: [
+            { subject: "Computer Programming 1 Lec", units: 2 },
+            { subject: "Computer Programming 1 Lab", units: 1 },
+            { subject: "Introduction to Computing", units: 3 },
+            { subject: "Arts Appreciation", units: 3 },
+            { subject: "Purposive Communication", units: 3 },
+            { subject: "Physical Fitness", units: 2 },
+            { subject: "Program Logic Formulation", units: 3 },
+            { subject: "Science, Technology and Society", units: 3 }
+        ],
+        2: [
+            { subject: "Computer Programming 2 Lec", units: 2 },
+            { subject: "Computer Programming 2 Lab", units: 1 },
+            { subject: "Human Computer Interaction", units: 3 },
+            { subject: "Basic Statistics", units: 3 },
+            { subject: "Public Speaking and Persuasion", units: 3 },
+            { subject: "Understanding the Self", units: 3 },
+            { subject: "Rizal's Life and Works", units: 3 },
+            { subject: "PE Swimming", units: 2 }
+        ],
+        3: [
+            { subject: "Mathematics in the Modern World", units: 3 },
+            { subject: "Ethics", units: 3 },
+            { subject: "Readings in the Philippine History", units: 3 },
+            { subject: "Technopreneurship", units: 3 },
+            { subject: "Data Structures and Algorithm", units: 3 },
+            { subject: "Quantitative Methods", units: 3 },
+            { subject: "Introduction to Networks", units: 3 },
+            { subject: "Individual/Dual Games and Sports", units: 2 }
+        ],
+        4: [
+            { subject: "The Contemporary World", units: 3 },
+            { subject: "Team Games and Sports", units: 2 },
+            { subject: "Fundamentals of Database System", units: 3 },
+            { subject: "Switching, Routing and Wireless Essentials", units: 3 },
+            { subject: "Information Assurance and Security", units: 3 },
+            { subject: "Platform Technologies", units: 3 },
+            { subject: "Discrete Structures 1", units: 3 },
+            { subject: "People and Earth's Ecosystem", units: 3 }
+        ],
+        5: [
+            { subject: "Information Management Lec", units: 2 },
+            { subject: "Information Management Lab", units: 1 },
+            { subject: "Object Oriented Programming", units: 3 },
+            { subject: "Enterprise Architecture", units: 3 },
+            { subject: "Web Development Lec", units: 2 },
+            { subject: "Web Development Lab", units: 1 },
+            { subject: "Enterprise Networking, Security and Automation Lec", units: 2 },
+            { subject: "Enterprise Networking, Security and Automation Lab", units: 1 },
+            { subject: "Systems Integration and Architecture", units: 3 },
+            { subject: "Integrative Programming Technologies 1", units: 3 }
+        ],
+        6: [
+            { subject: "Capstone Project 1", units: 3 },
+            { subject: "Cybersecurity Lec", units: 2 },
+            { subject: "Cybersecurity Lab", units: 1 },
+            { subject: "Linux System Architecture", units: 3 },
+            { subject: "Integrative Programming Technologies 2 Lec", units: 2 },
+            { subject: "Integrative Programming Technologies 2 Lab", units: 1 },
+            { subject: "Systems Administration and Maintenance Lec", units: 2 },
+            { subject: "Systems Administration and Maintenance Lab", units: 1 },
+            { subject: "Applications Development and Emerging Technologies", units: 3 }
+        ],
+        7: [
+            { subject: "Social and Professional Issues in Computing", units: 3 },
+            { subject: "Capstone Project 2", units: 3 },
+            { subject: "Field Trips & Seminars", units: 3 },
+            { subject: "Advanced Computer Networks", units: 3 },
+            { subject: "Windows Enterprise Administration Lec", units: 2 },
+            { subject: "Windows Enterprise Administration Lab", units: 1 }
+        ],
+        8: [
+            { subject: "Practicum (486 Hours)", units: 6 }
+        ]
+    };
+
+    function updateSubjects() {
+        const semester = document.getElementById("semester").value;
+        const subjectTable = document.getElementById("subjectTable");
+        subjectTable.innerHTML = "";
+
+        subjectsPerSemester[semester].forEach(({ subject, units }) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${subject}</td>
+                <td>${units}</td>
+                <td>
+                    <select>
+                        <option value="1.0">1.0</option>
+                        <option value="1.25">1.25</option>
+                        <option value="1.5">1.5</option>
+                        <option value="1.75">1.75</option>
+                        <option value="2.0">2.0</option>
+                        <option value="2.25">2.25</option>
+                        <option value="2.5">2.5</option>
+                        <option value="2.75">2.75</option>
+                        <option value="3.0">3.0</option>
+                        <option value="3.5">3.5</option>
+                        <option value="4.0">4.0</option>
+                        <option value="5.0">5.0</option>
+                    </select>
+                </td>
+            `;
+            subjectTable.appendChild(row);
+        });
+    }
+
+    function computeGWA() {
+        const rows = document.querySelectorAll("#subjectTable tr");
+        let totalUnits = 0;
+        let totalWeightedGrades = 0;
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+            const units = parseFloat(cells[1].textContent) || 0;
+            const grade = parseFloat(cells[2].querySelector("select").value) || 0;
+
+            totalUnits += units;
+            totalWeightedGrades += units * grade;
+        });
+
+        const gwa = totalWeightedGrades / totalUnits;
+        document.getElementById("result").textContent = `Your GWA is ${gwa.toFixed(2)}`;
+    }
+
+    // Initialize with the first semester subjects
+    updateSubjects();
+</script>
+
+</body>
+</html>
